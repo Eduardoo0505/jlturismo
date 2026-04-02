@@ -1,0 +1,250 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 30px;
+    background: #0b907c;
+    color: #e9ebe9;
+}
+
+.header a {
+    margin-left: 10px;
+    color:rgb(246, 244, 244);
+    text-decoration: underline;
+}
+
+.hero {
+    height: 700px;
+    background: 
+        linear-gradient(#05c0a3, #000000, #000000),
+        url("/src/assets/hero.png") no-repeat center;
+    background-size: cover;
+    color:#ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    button {
+        margin-top: 50px;
+        border-radius: 80px;
+    }
+}
+
+.hero button {
+    padding: 10px 20px;
+    background:#5d5d5d;
+    color:#f4f7f4;
+    border: 5px solid #0b907c;
+    cursor: pointer;
+
+
+}
+
+.destinos {
+    padding: 200px;
+    text-align: center;
+}
+
+.cards {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.card {
+    padding: 50px;
+    border: 5px solid #0b907c;
+    border-radius: 80px;
+}
+
+.footer {
+    background:#0a3d62;
+    color:#f4f7f4;
+    text-align: center;
+    padding: 10px;
+}
+
+.whatsapp-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #0a6221;
+  color: white;
+  font-size: 28px;
+  padding: 15px;
+  border-radius: 50%;
+  text-decoration: none;
+  box-shadow: 0 4px 10px #363636;
+  z-index: 1000;
+}
+
+.whatsapp-btn:hover {
+  transform: scale(1.1);
+}
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #05c0a3, #3c6382);
+}
+
+.login-box {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.login-box h2 {
+  text-align: center;
+}
+
+.login-box input {
+  padding: 10px;
+  border: 3px solid #0b907c;
+  border-radius: 5px;
+}
+
+.link {
+  text-decoration: underline;
+  color: #05c0a3;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: #05c0a3;
+}
+.login-box button {
+  padding: 10px;
+  background: #05c0a3;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 50px;
+}
+
+.login-box button:hover {
+  background: #1e5a85;
+}
+
+
+/* Reset  */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fundo bonito */
+.container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(135deg, #05c0a3, #3c6382);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Card estilo glass */
+.card {
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  color: white;
+}
+
+/* Título */
+.card h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* Inputs */
+input {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+
+  outline: none;
+  transition: 0.3s;
+}
+
+/* Placeholder branco */
+input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Focus bonito */
+input:focus {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Linha lado a lado */
+.linha {
+  display: flex;
+  gap: 10px;
+}
+
+.linha input {
+  flex: 1;
+}
+
+/* Botão */
+button {
+  margin-top: 10px;
+  padding: 12px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(135deg, #024e63, #01100f);
+  color: white;
+
+  font-weight: bold;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* Hover animado */
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsivo */
+@media (max-width: 500px) {
+  .card {
+    padding: 20px;
+  }
+
+  .linha {
+    flex-direction: column;
+  }
+}
