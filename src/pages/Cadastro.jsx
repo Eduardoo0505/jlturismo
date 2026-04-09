@@ -12,7 +12,7 @@ export default function Cadastro() {
 
   async function buscarCEP(value) {
     setCep(value);
-
+  
     if (value.length === 8) {
       try {
         const res = await fetch(`https://viacep.com.br/ws/${value}/json/`);

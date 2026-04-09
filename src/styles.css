@@ -10,6 +10,12 @@ body {
     background: #0b907c;
     color: #e9ebe9;
 }
+    @media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
 
 .header a {
     margin-left: 10px;
@@ -28,10 +34,19 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
     button {
         margin-top: 50px;
         border-radius: 80px;
     }
+    @media (max-width: 600px) {
+  .hero {
+    height: 250px;
+  }
+
+  .hero h1 {
+    font-size: 20px;
+  }
 }
 
 .hero button {
@@ -45,14 +60,15 @@ body {
 }
 
 .destinos {
-    padding: 200px;
+    padding: 100px;
     text-align: center;
 }
 
 .cards {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 40px;
+    gap: 50px;
 }
 
 .card {
@@ -81,7 +97,12 @@ body {
   box-shadow: 0 4px 10px #363636;
   z-index: 1000;
 }
-
+@media (max-width: 600px) {
+  .whatsapp {
+    bottom: 10px;
+    right: 10px;
+  }
+}
 .whatsapp-btn:hover {
   transform: scale(1.1);
 }
@@ -143,7 +164,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Fundo bonito */
+/* Fundo melhorado*/
 .container {
   height: 100vh;
   display: flex;
