@@ -1,0 +1,25 @@
+# Único Postgres suportado pelo projeto: container local (BFF usa DATABASE_URL → localhost).
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: jlturismo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jlturismo
+    ports:
+      - "5432:5432"
+    volumes:
+      - jlturismo_pgdata:/var/lib/postgresql/data
+      - ./server/sql/001_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./server/sql/002_seed_destinos.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./server/sql/003_seed_admin.sql:/docker-entrypoint-initdb.d/03-seed-admin.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jlturismo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  jlturismo_pgdata:

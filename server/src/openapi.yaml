@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: JL Turismo — BFF (API para Web e Mobile)
+  description: |
+    Backend for Frontend em Node.js/Express. Mesmo contrato pode ser consumido pelo React (web)
+    e pelo React Native. Autenticação via JWT no header `Authorization: Bearer <token>`.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Desenvolvimento local
+
+tags:
+  - name: Sistema
+  - name: Autenticação
+  - name: Destinos
+  - name: Interesses
+  - name: Admin
+
+paths:
+  /health:
+    get:
+      tags: [Sistema]
+      summary: Verifica se o servidor está no ar
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  servico: { type: string }
+
+  /cadastro:
+    post:
+      tags: [Autenticação]
+      summary: Criar conta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CadastroRequest"
+      responses:
+        "201":
+          description: Usuário criado; retorna JWT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Dados inválidos
+        "409":
+          description: E-mail ou CPF já existe
+
+  /login:
+    post:
+      tags: [Autenticação]
+      summary: Entrar (obtém JWT)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Credenciais inválidas
+
+  /destinos:
+    get:
+      tags: [Destinos]
+      summary: Listar pacotes turísticos ativos
+      responses:
+        "200":
+          description: Lista de destinos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Destino"
+
+  /interesses:
+    post:
+      tags: [Interesses]
+      summary: Registrar interesse em um destino (usuário logado)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteresseRequest"
+      responses:
+        "201":
+          description: Interesse registrado
+        "401":
+          description: Token ausente ou inválido
+        "404":
+          description: Destino não encontrado
+
+  /admin/clientes:
+    get:
+      tags: [Admin]
+      summary: Listar clientes (apenas admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de usuários
+        "403":
+          description: Não é administrador
+
+  /admin/interesses:
+    get:
+      tags: [Admin]
+      summary: Listar interesses com dados de usuário e destino
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, senha]
+      properties:
+        email:
+          type: string
+          format: email
+        senha:
+          type: string
+
+    CadastroRequest:
+      type: object
+      required: [nome, email, senha]
+      properties:
+        nome: { type: string }
+        email: { type: string, format: email }
+        senha: { type: string }
+        cpf: { type: string }
+        telefone: { type: string }
+        cep: { type: string }
+        rua: { type: string }
+        cidade: { type: string }
+        estado: { type: string }
+
+    AuthResponse:
+      type: object
+      properties:
+        token: { type: string }
+        usuario:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            nome: { type: string }
+            email: { type: string }
+            role: { type: string, enum: [user, admin] }
+
+    Destino:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        descricao: { type: string }
+        preco: { type: string, description: "Formatado em BRL" }
+        precoNumero: { type: number }
+        ativo: { type: boolean }
+
+    InteresseRequest:
+      type: object
+      required: [destinoId]
+      properties:
+        destinoId: { type: string, format: uuid }
+        mensagem: { type: string }

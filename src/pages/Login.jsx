@@ -1,10 +1,45 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api.js";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const navigate = useNavigate();
+
+  async function registrarInteresseSeHouver(token) {
+    const raw = localStorage.getItem("destino");
+    if (!raw) return;
+    let destino;
+    try {
+      destino = JSON.parse(raw);
+    } catch {
+      localStorage.removeItem("destino");
+      return;
+    }
+    if (!destino?.id) {
+      localStorage.removeItem("destino");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/interesses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ destinoId: destino.id }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.warn("Interesse não registrado:", err);
+      }
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      localStorage.removeItem("destino");
+    }
+  }
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -15,24 +50,28 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/login", {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, senha })
+        body: JSON.stringify({ email, senha }),
       });
 
       const data = await response.json();
       console.log("Resposta:", data);
 
-      if (response.ok) {
+      if (response.ok && data.token) {
+        localStorage.setItem("token", data.token);
+        if (data.usuario) {
+          localStorage.setItem("usuario", JSON.stringify(data.usuario));
+        }
+        await registrarInteresseSeHouver(data.token);
         alert("Login realizado!");
         navigate("/");
       } else {
-        alert("Erro no login");
+        alert(data.erro || "Erro no login");
       }
-
     } catch (error) {
       console.error(error);
       alert("Erro ao conectar com servidor");

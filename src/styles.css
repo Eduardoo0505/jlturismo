@@ -64,6 +64,12 @@ body {
     text-align: center;
 }
 
+.destinos-status {
+    margin: 1rem auto;
+    max-width: 36rem;
+    color: #333;
+}
+
 .cards {
     display: flex;
     flex-wrap: wrap;
