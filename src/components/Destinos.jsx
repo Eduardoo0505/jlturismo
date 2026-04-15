@@ -2,18 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api.js";
 
-const destinos = [
-  { id: 1, nome: "Praia", descricao: "Pra fazer aquela marquinha ou virar camarão", preco: "R$ 1.000,00" },
-  { id: 2, nome: "Serrinha", descricao: "Pra ficar vendo morro com neblina", preco: "R$ 800,00" },
-  { id: 3, nome: "Beto Carrero - Passaporte 1 dia", descricao: "Chamar o hugo na Star Mountain", preco: "R$ 160,00" },
-  { id: 4, nome: "Beto Carrero - Passaporte 2 dia", descricao: "Chamar o hugo por dois dias na Star Mountain", preco: "R$ 240,00" },
-  { id: 5, nome: "Internacional", descricao: "Comprinhas no Paraguai...", preco: "R$ 5.000,00" },
-];
-
 export default function Destinos() {
   const navigate = useNavigate();
   const [ativo, setAtivo] = useState(null);
-  const [setDestinos] = useState([]);
+  const [destinos, setDestinos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
@@ -26,6 +18,7 @@ export default function Destinos() {
         const res = await fetch(`${API_BASE_URL}/destinos`);
         if (!res.ok) throw new Error("Falha ao carregar destinos");
         const data = await res.json();
+        console.log("DADOS:", data);
         if (!cancelado) setDestinos(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error(e);
