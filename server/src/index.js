@@ -11,6 +11,8 @@ import authRoutes from "./routes/auth.routes.js";
 import destinosRoutes from "./routes/destinos.routes.js";
 import interessesRoutes from "./routes/interesses.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import pagamentosRouter from './routes/pagamentos.js';
+
 
 dotenv.config();
 
@@ -29,6 +31,7 @@ app.use(authRoutes);
 app.use(destinosRoutes);
 app.use(interessesRoutes);
 app.use("/admin", adminRoutes);
+app.use('/api/pagamentos', autenticar, pagamentosRouter);
 
 // Swagger: documentação interativa em /api-docs
 try {

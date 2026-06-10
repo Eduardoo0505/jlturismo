@@ -27,7 +27,7 @@ body {
     height: 700px;
     background: 
         linear-gradient(#05c0a3, #000000, #000000),
-        url("/src/assets/hero.png") no-repeat center;
+        url("/rollercoaster.gif") no-repeat center;
     background-size: cover;
     color:#ffffff;
     display: flex;
@@ -274,4 +274,24 @@ button:hover {
   .linha {
     flex-direction: column;
   }
+}
+/* Adicionar em src/index.css ou App.css */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Garantir botões clicáveis no mobile */
+button {
+  touch-action: manipulation;
+  min-height: 44px;
+}
+
+input, select, textarea {
+  font-size: 16px !important; /* Evita zoom automático no iOS */
 }
