@@ -19,8 +19,14 @@ dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
-app.use(cors({ origin: corsOrigin, credentials: true }));
+
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://jlturismo.vercel.app',   // ← sua URL do Vercel
+    process.env.CORS_ORIGIN,            // ← variável de ambiente (fallback)
+  ].filter(Boolean),
+  credentials: true,}));
 app.use(express.json());
 
 app.get("/health", (_req, res) => {

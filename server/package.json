@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Backend for Frontend (BFF) do JL Turismo — Node.js + Express + PostgreSQL (Docker)",
   "scripts": {
-    "dev": "node --watch src/index.js",
+    "dev": "nodemon src/index.js",
     "start": "node src/index.js"
   },
   "engines": {
