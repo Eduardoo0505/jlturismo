@@ -12,7 +12,7 @@ if (!connectionString) {
 }
 
 const url = connectionString || "postgres://127.0.0.1:5432/postgres";
-const isLocal = url.includes("localhost") || url.includes("127.0.0.1");
+const isLocal = url.includes("localhost") || url.includes("127.0.0.1") || url.includes("@db") || url.includes("db:5432");
 
 const options = isLocal ? {} : { ssl: { rejectUnauthorized: false } };
 

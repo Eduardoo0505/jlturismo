@@ -1,17 +1,42 @@
 // src/pages/ContatoPage.jsx
 import { useState } from 'react';
+import { API_BASE_URL } from '../config/api.js';
 
 export default function ContatoPage() {
   const [form, setForm]       = useState({ nome: '', email: '', mensagem: '' });
   const [enviado, setEnviado] = useState(false);
+  const [erro, setErro]       = useState('');
+  const [enviando, setEnviando] = useState(false);
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setErro('');
   }
 
-  function handleEnviar() {
-    if (!form.nome || !form.email || !form.mensagem) return;
-    setEnviado(true);
+  async function handleEnviar() {
+    if (!form.nome || !form.email || !form.mensagem) {
+      setErro('Preencha todos os campos');
+      return;
+    }
+    setEnviando(true);
+    setErro('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/contatos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEnviado(true);
+      } else {
+        setErro(data.erro || 'Erro ao enviar mensagem');
+      }
+    } catch {
+      setErro('Erro ao conectar com o servidor');
+    } finally {
+      setEnviando(false);
+    }
   }
 
   const inputStyle = {
@@ -32,10 +57,10 @@ export default function ContatoPage() {
         <div style={{ flex: 1, minWidth: '250px' }}>
           <h2 style={{ color: '#37d1d4', marginBottom: '1.5rem' }}>Informações</h2>
           {[
-            { icon: '', titulo: 'WhatsApp', valor: '(41) 99999-9999' },
-            { icon: '', titulo: 'E-mail',   valor: 'contato@jlturismo.com' },
-            { icon: '', titulo: 'Endereço', valor: 'Curitiba, PR' },
-            { icon: '', titulo: 'Horário',  valor: 'Seg-Sex: 9h–18h' },
+            { icon: '📱', titulo: 'WhatsApp', valor: '(41) 99999-9999' },
+            { icon: '📧', titulo: 'E-mail',   valor: 'contato@eyturismo.com' },
+            { icon: '📍', titulo: 'Endereço', valor: 'Curitiba, PR' },
+            { icon: '🕐', titulo: 'Horário',  valor: 'Seg-Sex: 9h–18h' },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
               <span style={{ fontSize: '1.5rem' }}>{item.icon}</span>
@@ -54,7 +79,7 @@ export default function ContatoPage() {
               background: '#1a2a1a', border: '1px solid #4caf50',
               borderRadius: '12px', padding: '2rem', textAlign: 'center',
             }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
               <h3 style={{ color: '#4caf50' }}>Mensagem enviada!</h3>
               <p style={{ color: '#aaa' }}>Retornaremos em até 24 horas.</p>
               <button onClick={() => { setForm({ nome: '', email: '', mensagem: '' }); setEnviado(false); }}
@@ -64,6 +89,7 @@ export default function ContatoPage() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {erro && <div style={{ background: '#2a1a1a', border: '1px solid #ff6b6b', borderRadius: '8px', padding: '0.75rem', color: '#ff6b6b', fontSize: '0.9rem' }}>{erro}</div>}
               <div>
                 <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.35rem' }}>Nome</label>
                 <input name="nome" value={form.nome} onChange={handleChange} placeholder="Seu nome" style={inputStyle} />
@@ -78,12 +104,12 @@ export default function ContatoPage() {
                   placeholder="Como podemos ajudar?" rows={5}
                   style={{ ...inputStyle, resize: 'vertical', fontFamily: 'sans-serif' }} />
               </div>
-              <button onClick={handleEnviar} style={{
-                background: '#37d4bf', color: '#000', border: 'none',
+              <button onClick={handleEnviar} disabled={enviando} style={{
+                background: enviando ? '#555' : '#37d4bf', color: '#000', border: 'none',
                 padding: '0.9rem', borderRadius: '8px', fontWeight: 'bold',
-                cursor: 'pointer', fontSize: '1rem',
+                cursor: enviando ? 'not-allowed' : 'pointer', fontSize: '1rem',
               }}>
-                Enviar mensagem
+                {enviando ? 'Enviando...' : 'Enviar mensagem'}
               </button>
             </div>
           )}

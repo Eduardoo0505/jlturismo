@@ -1,17 +1,24 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-// Páginas EXISTENTES — ajuste os caminhos conforme seus arquivos reais
+// Componentes Globais
+import Header          from './components/Header';
+
+// Páginas existentes
 import HomePage        from './pages/HomePage';
 import LoginPage       from './pages/LoginPage';
 import CadastroPage    from './pages/CadastroPage';
 import DestinosPage    from './pages/DestinosPage';
 
-// Páginas NOVAS
+// Páginas existentes (atualizadas)
 import MapaPage        from './pages/MapaPage';
 import PacotesPage     from './pages/PacotesPage';
 import PagamentoPage   from './pages/PagamentoPage';
 import ContatoPage     from './pages/ContatoPage';
+
+// Páginas novas
+import PerfilPage      from './pages/PerfilPage';
+import AdminPage       from './pages/AdminPage';
 
 // Guarda de rota privada (exige login)
 function RotaPrivada({ children }) {
@@ -19,9 +26,23 @@ function RotaPrivada({ children }) {
   return token ? children : <Navigate to="/login" replace />;
 }
 
+// Guarda de rota admin (exige login + role admin)
+function RotaAdmin({ children }) {
+  const token = localStorage.getItem('token');
+  if (!token) return <Navigate to="/login" replace />;
+  try {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (usuario.role !== 'admin') return <Navigate to="/" replace />;
+  } catch {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <Header />
       <Routes>
         {/* Públicas */}
         <Route path="/"          element={<HomePage />} />
@@ -39,6 +60,24 @@ export default function App() {
             <RotaPrivada>
               <PagamentoPage />
             </RotaPrivada>
+          }
+        />
+        <Route
+          path="/perfil"
+          element={
+            <RotaPrivada>
+              <PerfilPage />
+            </RotaPrivada>
+          }
+        />
+
+        {/* Admin — só acessa se for admin */}
+        <Route
+          path="/admin"
+          element={
+            <RotaAdmin>
+              <AdminPage />
+            </RotaAdmin>
           }
         />
 

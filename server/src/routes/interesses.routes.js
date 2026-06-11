@@ -1,18 +1,15 @@
 import { Router } from "express";
 import sql from "../config/db.js";
 import { authRequired } from "../middleware/auth.js";
+import { validar, interesseSchema } from "../middleware/validators.js";
 
 const router = Router();
 
 /**
  * POST /interesses — registra interesse de um usuário autenticado em um destino.
  */
-router.post("/interesses", authRequired, async (req, res) => {
+router.post("/interesses", authRequired, validar(interesseSchema), async (req, res, next) => {
   const { destinoId, mensagem } = req.body;
-
-  if (!destinoId) {
-    return res.status(400).json({ erro: "destinoId é obrigatório" });
-  }
 
   try {
     const dest = await sql`
@@ -30,8 +27,7 @@ router.post("/interesses", authRequired, async (req, res) => {
 
     return res.status(201).json(insert[0]);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ erro: "Erro ao registrar interesse" });
+    next(err);
   }
 });
 

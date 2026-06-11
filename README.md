@@ -4,68 +4,72 @@ Site da agência (**React + Vite**) e **BFF** em Node.js (**Express**) com **Pos
 
 ---
 
-## PostgreSQL com Docker
+## Como Rodar a Aplicação
 
-Na **raiz** do repositório (pasta `jlturismo/`):
+Este projeto suporta duas formas de execução: **Docker Compose Unificado** (método recomendado, que constrói e roda banco, API e frontend juntos) ou **Desenvolvimento Local** (onde apenas o banco roda no Docker).
 
-```bash
-docker compose up -d
-```
+---
 
-- **Primeira execução:** o Postgres cria o volume e executa, em ordem, os scripts em `server/sql/` montados no container (`001_schema.sql`, `002_seed_destinos.sql`, `003_seed_admin.sql` — tabelas, pacotes de exemplo e usuário admin de desenvolvimento).
-- **Usuário / senha / banco:** `postgres` / `postgres` / `jlturismo` (definidos em `docker-compose.yml` — só para desenvolvimento).
+### Método 1: Docker Compose Unificado (Recomendado)
 
-Conferir se subiu:
+Ideal para rodar a aplicação completa com um único comando. Na **raiz** do repositório:
 
 ```bash
-docker compose ps
+# 1. Iniciar e buildar todos os serviços (Banco + API + Frontend)
+docker compose up --build -d
 ```
 
-**Recomeçar do zero** (apaga dados locais):
+- **Como funciona:** O Compose sobe automaticamente:
+  1. O banco PostgreSQL (`db`), aplicando todas as migrations (`001` a `006`) e semeando os pacotes e o usuário administrador.
+  2. O backend/API (`api`), conectando-se internamente ao container do banco.
+  3. O frontend React (`web`), servido por um servidor Nginx leve otimizado para SPA.
+- **Portas expostas no host:**
+  - **Frontend (Nginx + React):** [http://localhost:5173](http://localhost:5173)
+  - **Backend (Express):** [http://localhost:3000](http://localhost:3000) (Health check: `/health`)
+  - **Documentação (Swagger):** [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
 
+**Recomeçar do zero (Limpar banco e recriar tabelas):**
 ```bash
 docker compose down -v
-docker compose up -d
+docker compose up --build -d
 ```
-
-O init do Postgres volta a criar schema, destinos e admin automaticamente.
-
-Se atualizaste o repositório e **já tinhas** um volume Docker antigo **sem** o arquivo `003_seed_admin.sql`, o admin pode não existir: usa `docker compose down -v` uma vez para recriar o volume com todos os scripts atuais.
-
-Se a porta **5432** já estiver ocupada por outro Postgres no Mac, altere em `docker-compose.yml` para `"5433:5432"` e use `localhost:5433` na `DATABASE_URL` do `server/.env`.
 
 ---
 
-## Rodar o front-end
+### Método 2: Desenvolvimento Local (Alternativo)
 
+Ideal se você deseja fazer alterações de código com *hot-reload* imediato no frontend ou no backend sem precisar reconstruir imagens do Docker.
+
+#### 1. Subir apenas o Banco de Dados (Docker)
+Na raiz do repositório, rode apenas o serviço de banco:
 ```bash
-npm install
-npm run dev
+docker compose up -d db
 ```
 
-Abre em `http://localhost:5173`. Opcional: copie `.env.example` para `.env` na raiz do front e defina `VITE_API_URL` se o BFF não estiver em `http://localhost:3000`.
-
----
-
-## Rodar o BFF (backend)
-
+#### 2. Rodar o Backend (API)
+Abra um terminal, vá para a pasta `server/` e execute:
 ```bash
 cd server
 npm install
-cp .env.example .env
-# Ajuste JWT_SECRET. DATABASE_URL já aponta para o Postgres do Docker.
-npm run dev
+cp .env.example .env    # se ainda não existir
+npm run dev             # Roda com nodemon
 ```
+*Ajuste as variáveis no `server/.env` se necessário. Por padrão, ele conecta no Postgres do localhost:5432.*
 
-| URL | Uso |
-|-----|-----|
-| `http://localhost:3000` | Base da API |
-| `http://localhost:3000/health` | Verifica se o servidor está no ar |
-| `http://localhost:3000/api-docs` | **Swagger** |
+#### 3. Rodar o Frontend (React)
+Abra outro terminal na raiz do projeto e execute:
+```bash
+npm install
+npm run dev             # Roda o servidor de desenvolvimento do Vite
+```
+Acesse [http://localhost:5173](http://localhost:5173).
 
-**Admin de testes** (criado pelo Docker na 1ª subida): e-mail `admin@jlturismo.local`, senha `admin123` (definidos em `server/sql/003_seed_admin.sql` — só para desenvolvimento).
+---
 
-O arquivo `server/.env` **não** deve ser commitado. A `DATABASE_URL` deve apontar para o container (`localhost` e a porta mapeada no `docker-compose.yml`).
+### Credenciais de Testes (Criadas por Padrão)
+* **Administrador:** `admin@jlturismo.local` / senha `admin123`
+* **Clientes comuns:** `cliente1@jlturismo.local` / senha `cliente123`
+
 
 ---
 

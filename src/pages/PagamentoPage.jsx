@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_BASE_URL } from '../config/api.js';
+const API_URL = API_BASE_URL;
 
 export default function PagamentoPage() {
   const navigate  = useNavigate();

@@ -40,9 +40,32 @@ export default function Destinos() {
     setAtivo(ativo === id ? null : id);
   }
 
-  function escolherDestino(destino) {
-    localStorage.setItem("destino", JSON.stringify(destino));
-    navigate("/login");
+  async function escolherDestino(destino) {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/interesses`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ destinoId: destino.id }),
+        });
+        if (res.ok) {
+          alert(`Interesse no pacote "${destino.nome}" registrado com sucesso!`);
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert(data.erro || "Não foi possível registrar seu interesse.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao conectar com o servidor.");
+      }
+    } else {
+      localStorage.setItem("destino", JSON.stringify(destino));
+      navigate("/login");
+    }
   }
 
   return (

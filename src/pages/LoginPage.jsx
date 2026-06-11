@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { API_BASE_URL } from "../config/api.js";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
 
   async function registrarInteresseSeHouver(token) {
     const raw = localStorage.getItem("destino");
@@ -43,12 +47,14 @@ export default function Login() {
 
   async function handleLogin(e) {
     e.preventDefault();
+    setErro("");
 
     if (!email || !senha) {
-      alert("Preencha todos os campos!");
+      setErro("Preencha todos os campos!");
       return;
     }
 
+    setCarregando(true);
     try {
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
@@ -59,7 +65,6 @@ export default function Login() {
       });
 
       const data = await response.json();
-      console.log("Resposta:", data);
 
       if (response.ok && data.token) {
         localStorage.setItem("token", data.token);
@@ -67,14 +72,16 @@ export default function Login() {
           localStorage.setItem("usuario", JSON.stringify(data.usuario));
         }
         await registrarInteresseSeHouver(data.token);
-        alert("Login realizado!");
-        navigate("/");
+
+        // Redireciona para a página solicitada ou home
+        navigate(redirect);
       } else {
-        alert(data.erro || "Erro no login");
+        setErro(data.erro || "Erro no login");
       }
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao conectar com servidor");
+    } catch {
+      setErro("Erro ao conectar com o servidor. Verifique se o backend está rodando.");
+    } finally {
+      setCarregando(false);
     }
   }
 
@@ -83,27 +90,36 @@ export default function Login() {
       <form className="login-box" onSubmit={handleLogin}>
         <h2>Login</h2>
 
+        {erro && (
+          <div style={{
+            background: "rgba(255,107,107,0.15)", border: "1px solid #ff6b6b",
+            borderRadius: "8px", padding: "8px 12px", color: "#ff6b6b", fontSize: "0.85rem",
+          }}>{erro}</div>
+        )}
+
         <input
           type="email"
           placeholder="Digite seu email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => { setEmail(e.target.value); setErro(""); }}
         />
 
         <input
           type="password"
           placeholder="Digite sua senha"
           value={senha}
-          onChange={(e) => setSenha(e.target.value)}
+          onChange={(e) => { setSenha(e.target.value); setErro(""); }}
         />
 
-        <button type="submit">Entrar</button>
+        <button type="submit" disabled={carregando}>
+          {carregando ? "Entrando..." : "Entrar"}
+        </button>
 
         <p>
           Não possuo conta{" "}
-          <span 
+          <span
           className="link"
-          onClick={() => navigate("/cadastro")}>
+          onClick={() => navigate(`/cadastro?redirect=${encodeURIComponent(redirect)}`)}>
             Cadastre-se
           </span>
         </p>

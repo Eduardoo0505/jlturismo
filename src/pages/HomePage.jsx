@@ -1,4 +1,3 @@
-import Header from "../components/Header";
 import Hero from "../components/Hero";
 import DestinosPage from "../pages/DestinosPage";
 import Footer from "../components/Footer";
@@ -7,7 +6,6 @@ import WhatsAppButton from "../components/WhatsAppButton";
 export default function HomePage() {
     return (
         <>
-        <Header />
         <Hero />
         <DestinosPage />
         <Footer />

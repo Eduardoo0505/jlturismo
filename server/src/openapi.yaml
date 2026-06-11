@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-  title: JL Turismo — BFF (API para Web e Mobile)
+  title: E&Y Turismo — BFF (API para Web e Mobile)
   description: |
     Backend for Frontend em Node.js/Express. Mesmo contrato pode ser consumido pelo React (web)
     e pelo React Native. Autenticação via JWT no header `Authorization: Bearer <token>`.
-  version: 1.0.0
+  version: 2.0.0
 
 servers:
   - url: http://localhost:3000
@@ -15,6 +15,10 @@ tags:
   - name: Autenticação
   - name: Destinos
   - name: Interesses
+  - name: Pagamentos
+  - name: Contatos
+  - name: Avaliações
+  - name: Perfil
   - name: Admin
 
 paths:
@@ -32,11 +36,12 @@ paths:
                 properties:
                   ok: { type: boolean }
                   servico: { type: string }
+                  timestamp: { type: string }
 
   /cadastro:
     post:
       tags: [Autenticação]
-      summary: Criar conta
+      summary: Criar conta (envia email de boas-vindas)
       requestBody:
         required: true
         content:
@@ -51,7 +56,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Dados inválidos
+          description: Dados inválidos (validação Zod)
         "409":
           description: E-mail ou CPF já existe
 
@@ -74,6 +79,8 @@ paths:
                 $ref: "#/components/schemas/AuthResponse"
         "401":
           description: Credenciais inválidas
+        "429":
+          description: Rate limit (muitas tentativas)
 
   /destinos:
     get:
@@ -109,27 +116,255 @@ paths:
         "404":
           description: Destino não encontrado
 
-  /admin/clientes:
+  /contatos:
+    post:
+      tags: [Contatos]
+      summary: Enviar mensagem de contato (público)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContatoRequest"
+      responses:
+        "201":
+          description: Mensagem enviada
+
+  /avaliacoes:
+    post:
+      tags: [Avaliações]
+      summary: Criar ou atualizar avaliação de destino (logado)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvaliacaoRequest"
+      responses:
+        "201":
+          description: Avaliação registrada
+
+  /avaliacoes/{destinoId}:
     get:
-      tags: [Admin]
-      summary: Listar clientes (apenas admin)
+      tags: [Avaliações]
+      summary: Listar avaliações de um destino (público)
+      parameters:
+        - name: destinoId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Avaliações com média
+
+  /api/pagamentos:
+    post:
+      tags: [Pagamentos]
+      summary: Registrar pagamento (logado, envia email de confirmação)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PagamentoRequest"
+      responses:
+        "201":
+          description: Pagamento aprovado
+    get:
+      tags: [Pagamentos]
+      summary: Histórico de pagamentos do usuário
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: Lista de usuários
-        "403":
-          description: Não é administrador
+          description: Lista de pagamentos
+
+  /perfil:
+    get:
+      tags: [Perfil]
+      summary: Dados do perfil do usuário logado
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dados do perfil
+    put:
+      tags: [Perfil]
+      summary: Atualizar dados do perfil
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PerfilUpdateRequest"
+      responses:
+        "200":
+          description: Perfil atualizado
+
+  /perfil/senha:
+    put:
+      tags: [Perfil]
+      summary: Alterar senha (exige senha atual)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [senhaAtual, novaSenha]
+              properties:
+                senhaAtual: { type: string }
+                novaSenha: { type: string, minLength: 6 }
+      responses:
+        "200":
+          description: Senha alterada
+
+  /perfil/interesses:
+    get:
+      tags: [Perfil]
+      summary: Interesses do usuário logado
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Lista de interesses }
+
+  /perfil/pagamentos:
+    get:
+      tags: [Perfil]
+      summary: Pagamentos do usuário logado
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Lista de pagamentos }
+
+  /admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: Estatísticas gerais do sistema
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Dashboard com totais e últimas atividades }
+        "403": { description: Não é administrador }
+
+  /admin/clientes:
+    get:
+      tags: [Admin]
+      summary: Listar clientes com paginação
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200": { description: Lista paginada }
+
+  /admin/destinos:
+    get:
+      tags: [Admin]
+      summary: Listar TODOS destinos (ativos e inativos)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Lista paginada }
+    post:
+      tags: [Admin]
+      summary: Criar destino
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DestinoRequest"
+      responses:
+        "201": { description: Destino criado }
+
+  /admin/destinos/{id}:
+    put:
+      tags: [Admin]
+      summary: Editar destino
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DestinoRequest"
+      responses:
+        "200": { description: Destino atualizado }
+    delete:
+      tags: [Admin]
+      summary: Excluir destino
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: Excluído }
+        "409": { description: Há registros vinculados }
 
   /admin/interesses:
     get:
       tags: [Admin]
       summary: Listar interesses com dados de usuário e destino
-      security:
-        - bearerAuth: []
+      security: [{ bearerAuth: [] }]
       responses:
-        "200":
-          description: Lista
+        "200": { description: Lista paginada }
+
+  /admin/interesses/{id}/status:
+    patch:
+      tags: [Admin]
+      summary: Alterar status do interesse
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [novo, contatado, convertido] }
+      responses:
+        "200": { description: Status atualizado }
+
+  /admin/pagamentos:
+    get:
+      tags: [Admin]
+      summary: Listar todos os pagamentos
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Lista paginada }
+
+  /admin/contatos:
+    get:
+      tags: [Admin]
+      summary: Listar mensagens de contato
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Lista paginada }
+
+  /admin/avaliacoes:
+    get:
+      tags: [Admin]
+      summary: Listar todas as avaliações
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Lista paginada }
 
 components:
   securitySchemes:
@@ -138,24 +373,31 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+  parameters:
+    page:
+      name: page
+      in: query
+      schema: { type: integer, default: 1 }
+    limit:
+      name: limit
+      in: query
+      schema: { type: integer, default: 20, maximum: 100 }
+
   schemas:
     LoginRequest:
       type: object
       required: [email, senha]
       properties:
-        email:
-          type: string
-          format: email
-        senha:
-          type: string
+        email: { type: string, format: email }
+        senha: { type: string }
 
     CadastroRequest:
       type: object
       required: [nome, email, senha]
       properties:
-        nome: { type: string }
+        nome: { type: string, minLength: 2 }
         email: { type: string, format: email }
-        senha: { type: string }
+        senha: { type: string, minLength: 6 }
         cpf: { type: string }
         telefone: { type: string }
         cep: { type: string }
@@ -185,9 +427,53 @@ components:
         precoNumero: { type: number }
         ativo: { type: boolean }
 
+    DestinoRequest:
+      type: object
+      required: [nome, descricao, preco]
+      properties:
+        nome: { type: string, minLength: 2 }
+        descricao: { type: string, minLength: 5 }
+        preco: { type: number, minimum: 0 }
+        ativo: { type: boolean }
+
     InteresseRequest:
       type: object
       required: [destinoId]
       properties:
         destinoId: { type: string, format: uuid }
         mensagem: { type: string }
+
+    PagamentoRequest:
+      type: object
+      required: [pacoteId, pacoteNome, valor, metodo]
+      properties:
+        pacoteId: { type: string }
+        pacoteNome: { type: string }
+        valor: { type: number }
+        metodo: { type: string, enum: [cartao, pix, boleto] }
+
+    ContatoRequest:
+      type: object
+      required: [nome, email, mensagem]
+      properties:
+        nome: { type: string, minLength: 2 }
+        email: { type: string, format: email }
+        mensagem: { type: string, minLength: 5 }
+
+    AvaliacaoRequest:
+      type: object
+      required: [destinoId, nota]
+      properties:
+        destinoId: { type: string, format: uuid }
+        nota: { type: integer, minimum: 1, maximum: 5 }
+        comentario: { type: string }
+
+    PerfilUpdateRequest:
+      type: object
+      properties:
+        nome: { type: string }
+        telefone: { type: string }
+        cep: { type: string }
+        rua: { type: string }
+        cidade: { type: string }
+        estado: { type: string }

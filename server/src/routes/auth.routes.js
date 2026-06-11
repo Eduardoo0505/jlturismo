@@ -2,6 +2,9 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import sql from "../config/db.js";
+import { validar, cadastroSchema, loginSchema } from "../middleware/validators.js";
+import { enviarEmail, emailBoasVindas } from "../config/email.js";
+import logger from "../config/logger.js";
 
 const router = Router();
 
@@ -26,12 +29,8 @@ function signToken(user) {
 /**
  * POST /cadastro — cria usuário com senha hasheada (nunca gravar senha em texto puro).
  */
-router.post("/cadastro", async (req, res) => {
+router.post("/cadastro", validar(cadastroSchema), async (req, res, next) => {
   const { nome, email, senha, cpf, telefone, cep, rua, cidade, estado } = req.body;
-
-  if (!nome || !email || !senha) {
-    return res.status(400).json({ erro: "nome, email e senha são obrigatórios" });
-  }
 
   try {
     const senhaHash = await bcrypt.hash(senha, 10);
@@ -53,25 +52,25 @@ router.post("/cadastro", async (req, res) => {
 
     const user = result[0];
     const token = signToken(user);
+
+    // Envia e-mail de boas-vindas (async, não bloqueia)
+    enviarEmail(emailBoasVindas(user.nome, user.email))
+      .catch((err) => logger.warn("[auth] Email de boas-vindas falhou:", err.message));
+
     return res.status(201).json({ token, usuario: user });
   } catch (err) {
     if (err.code === "23505") {
       return res.status(409).json({ erro: "E-mail ou CPF já cadastrado" });
     }
-    console.error(err);
-    return res.status(500).json({ erro: "Erro ao cadastrar" });
+    next(err);
   }
 });
 
 /**
  * POST /login — valida credenciais e devolve JWT (o front já usa este caminho e este body).
  */
-router.post("/login", async (req, res) => {
+router.post("/login", validar(loginSchema), async (req, res, next) => {
   const { email, senha } = req.body;
-
-  if (!email || !senha) {
-    return res.status(400).json({ erro: "email e senha são obrigatórios" });
-  }
 
   try {
     const rows = await sql`
@@ -97,10 +96,10 @@ router.post("/login", async (req, res) => {
       role: row.role,
     };
     const token = signToken(user);
+    logger.info("[auth] Login bem-sucedido:", user.email);
     return res.json({ token, usuario: user });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ erro: "Erro no login" });
+    next(err);
   }
 });
 
